@@ -1,16 +1,31 @@
 import 'package:flutter/material.dart';
 import 'sign_up_page.dart';
+import 'offers_search.dart';
+import 'item_list.dart';
 
-class Offer{
+class Offer {
   String offerName;
   int id;
   Offer(this.offerName, this.id);
 }
+
 const List<String> list = <String>['Swiggy', 'Zomato', 'Uber', 'Travel'];
-const List<String> creditCardList = <String>['Flipkart Axis', 'Amazon ICICI', 'StandardCharted Smart'];
+const List<String> creditCardList = <String>[
+  'Flipkart Axis',
+  'Amazon ICICI',
+  'StandardCharted Smart'
+];
 
 void main() {
-  runApp(SignUp());
+  runApp(MaterialApp(
+    home: SignUp(),
+    initialRoute: '/signUp',
+    routes: {
+      '/signUp': (context) => SignUp(),
+      '/offerSearch': (context) => const OfferSearch(),
+      '/listItems': (context) => const CreditCardList()
+    },
+  ));
 }
 
 class DropdownButtonApp extends StatelessWidget {
@@ -18,14 +33,12 @@ class DropdownButtonApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Dropdown Sample'),
-        ),
-        body: const Center(
-          child: DropdownButtonExample(),
-        ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Dropdown Sample'),
+      ),
+      body: const Center(
+        child: DropdownButtonExample(),
       ),
     );
   }
@@ -52,26 +65,26 @@ class _DropdownButtonExampleState extends State<DropdownButtonExample> {
             child: Text("Select anyone : ")),
         Container(
             child: DropdownButton<String>(
-              value: creditCardValue,
-              icon: const Icon(
-                Icons.arrow_circle_down,
-                size: 20,
-              ),
-              elevation: 16,
-              style: const TextStyle(color: Colors.deepPurple),
-              underline: Container(
-                height: 2,
-                color: Colors.deepPurpleAccent,
-              ),
-              onChanged: (String? value) {
-                setState(() {
-                  dropdownValue = value!;
-                });
-              },
-              items: creditCardList.map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(value: value, child: Text(value));
-              }).toList(),
-            ))
+          value: creditCardValue,
+          icon: const Icon(
+            Icons.arrow_circle_down,
+            size: 20,
+          ),
+          elevation: 16,
+          style: const TextStyle(color: Colors.deepPurple),
+          underline: Container(
+            height: 2,
+            color: Colors.deepPurpleAccent,
+          ),
+          onChanged: (String? value) {
+            setState(() {
+              dropdownValue = value!;
+            });
+          },
+          items: creditCardList.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(value: value, child: Text(value));
+          }).toList(),
+        ))
       ]),
       Row(children: [
         Container(
@@ -123,12 +136,13 @@ class _DropdownButtonExampleState extends State<DropdownButtonExample> {
           Container(
             child: TextButton(
               style: ButtonStyle(
-                backgroundColor: MaterialStateColor.resolveWith((states) => Colors.deepPurpleAccent)
+                  backgroundColor: MaterialStateColor.resolveWith(
+                      (states) => Colors.deepPurpleAccent)),
+              child: Text(
+                "Calculate",
+                style: TextStyle(color: Colors.white),
               ),
-              child: Text("Calculate", style: TextStyle(
-                color: Colors.white
-              ),),
-              onPressed: ()=> {},
+              onPressed: () => {},
             ),
           )
         ],

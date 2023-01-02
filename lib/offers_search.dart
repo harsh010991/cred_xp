@@ -10,6 +10,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'package:json_table/json_table.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cred_xp/secure_storage.dart';
 
 class OfferSearch extends StatefulWidget {
   const OfferSearch({Key? key}) : super(key: key);
@@ -33,9 +34,10 @@ class _OfferSearch extends State<OfferSearch>{
     JsonTableColumn("name", label : "Name"),
     JsonTableColumn("cashback", label: "Cash")
   ];
-
+  var secureStorage = SecureStorage();
   @override
   initState() {
+    _checkToken();
     _existingOfferFuture = getExistingOffersList();
     // super.initState();
   }
@@ -47,8 +49,7 @@ class _OfferSearch extends State<OfferSearch>{
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return MaterialApp(
-        home: Scaffold(
+    return Scaffold(
             appBar: AppBar(
               title: const Text('CredXp'),
             ),
@@ -260,7 +261,7 @@ class _OfferSearch extends State<OfferSearch>{
                       :const Center() )   ]
                 ),
                 )
-    )));
+    ));
     throw UnimplementedError();
   }
   Future<dynamic> getExistingOffersList() async{
@@ -270,7 +271,7 @@ class _OfferSearch extends State<OfferSearch>{
         print(jsonDecode(response.body)['existing_offer_list']);
         final existingOfferList = jsonDecode(response.body)['existing_offer_list'];
         _existingOfferList= existingOfferList;
-        return json.decode(utf8.decode(response.bodyBytes));
+        return json.decode(response.body);
       });
     }
     else {
@@ -287,17 +288,16 @@ class _OfferSearch extends State<OfferSearch>{
 
    getCashBack() async {
     List<CreditCardOffersDetails> list;
-    final response = await http.get(
-        Uri.parse("https://run.mocky.io/v3/6eee945d-a783-4660-b58f-b71bf0916494"));
+    final response = await http.get(Uri.parse("https://run.mocky.io/v3/6eee945d-a783-4660-b58f-b71bf0916494"));
+    print(response);
     print(response);
     if (response.statusCode == 200) {
       print(response.body.toString());
-      var jsonRes = json.decode(response.body);
       setState((){
-        cbDetailsJson = jsonRes["data"]["credit_card_offers"];
-        offerCb = jsonRes["data"]["cc_refferal"]["cashback"];
-        offerCC = jsonRes["data"]["cc_refferal"]["name"];
-        ccOfferLink = jsonRes["data"]["cc_refferal"]["referral_link"];
+        cbDetailsJson = jsonDecode(response.body)["data"]["credit_card_offers"];
+        offerCb = jsonDecode(response.body)["data"]["cc_refferal"]["cashback"];
+        offerCC = jsonDecode(response.body)["data"]["cc_refferal"]["name"];
+        ccOfferLink = jsonDecode(response.body)["data"]["cc_refferal"]["referral_link"];
         toggle = true;
         _url =  Uri.parse(ccOfferLink);
       });
@@ -313,5 +313,16 @@ class _OfferSearch extends State<OfferSearch>{
     return null;
   }
 
-
+  Future<String?> checkToken() async{
+    return await secureStorage.getToken();
+  }
+  void _checkToken() async {
+    var token;
+    await checkToken().then((value) => {token = value, print(value)});
+    if (token != null && token!.isEmpty) {
+      Future.delayed(Duration.zero, () async {
+        Navigator.pushNamed(context, '/signUp');
+      });
+    }
+  }
 }

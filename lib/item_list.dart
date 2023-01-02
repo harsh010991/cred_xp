@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'package:cred_xp/offers_search.dart';
+import 'package:cred_xp/secure_storage.dart';
+import 'package:cred_xp/sign_up_page.dart';
 
 class CreditCardList extends StatefulWidget {
   const CreditCardList({Key? key}) : super(key: key);
@@ -31,14 +33,18 @@ class _CreditCardList extends State<CreditCardList> {
   List<Map<String, dynamic>> _foundUsers = [];
   var selectedIndexes = [];
   late Future<dynamic> _creditCardListFututre;
+   var secureStorage = SecureStorage();
 
   @override
   initState() {
     super.initState();
+    _checkToken();
     _creditCardListFututre = getCreditCardList();
     // super.initState();
   }
-
+  Future<String?> checkToken() async{
+    return await secureStorage.getToken();
+  }
   // This function is called whenever the text field changes
   void _runFilter(String enteredKeyword) {
     List<Map<String, dynamic>> results = [];
@@ -166,5 +172,14 @@ class _CreditCardList extends State<CreditCardList> {
     scaffold.showSnackBar(SnackBar(content: Text(message),
       action: SnackBarAction(label: 'DONE',onPressed: scaffold.hideCurrentSnackBar,),
     ));
+  }
+  void _checkToken() async{
+    String? token = "";
+    await checkToken().then((value) => {token= value, print(value)});
+    if( token != null && token!.isEmpty){
+      Future.delayed(Duration.zero, () async {
+        Navigator.pushNamed(context, '/signUp');
+      });
+    }
   }
 }

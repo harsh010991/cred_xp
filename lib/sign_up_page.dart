@@ -29,7 +29,7 @@ class SignUp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return
-      MaterialApp(home:Scaffold(
+      Scaffold(
         appBar: AppBar(
           title: const Text('CredXp'),
         ),
@@ -41,7 +41,12 @@ class SignUp extends StatelessWidget {
             children: [
               Container(
                   alignment: Alignment.center,
-                  child: const Text("Please enter your mobile number")),
+                  width: 300,
+                  child: const Text(
+                      "Please enter your mobile number. Don't worry, we also hate spam calls.",
+                    style: TextStyle(fontWeight: FontWeight.w400, fontStyle: FontStyle.italic),
+                  )
+              ),
               Container(
                 padding: const EdgeInsets.all(15),
                 child: SizedBox(
@@ -70,7 +75,7 @@ class SignUp extends StatelessWidget {
               )
             ],
           ),
-        )));
+        ));
   }
 
   sendOtp(BuildContext context) async {
