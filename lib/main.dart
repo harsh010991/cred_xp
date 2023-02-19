@@ -1,3 +1,4 @@
+import 'package:cred_xp/storage/UserSecureStorage.dart';
 import 'package:flutter/material.dart';
 import 'sign_up_page.dart';
 import 'offers_search.dart';
@@ -17,17 +18,38 @@ const List<String> creditCardList = <String>[
 ];
 
 void main() {
-  runApp(MaterialApp(
-    home: SignUp(),
-    initialRoute: '/signUp',
-    routes: {
-      '/signUp': (context) => SignUp(),
-      '/offerSearch': (context) => const OfferSearch(),
-      '/listItems': (context) => const CreditCardList()
-    },
-  ));
+  runApp(CredXpApp()
+    // home: SignUp(),
+    // initialRoute: '/signUp',
+    // routes: {
+    //   '/signUp': (context) => SignUp(),
+    //   '/offerSearch': (context) => const OfferSearch(),
+    //   '/listItems': (context) => const CreditCardList()
+    // },
+  );
 }
 
+class CredXpApp extends StatelessWidget{
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: MaterialApp(
+        title: 'CredXp',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home:  SignUp(),
+      ),
+    );
+  }
+  
+}
+Future<String?> checkToken() async{
+  return await UserSecureStorage.getAuth() ?? '';
+}
 class DropdownButtonApp extends StatelessWidget {
   const DropdownButtonApp({super.key});
 

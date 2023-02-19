@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cred_xp/storage/UserSecureStorage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -33,7 +34,8 @@ class _CreditCardList extends State<CreditCardList> {
   List<Map<String, dynamic>> _foundUsers = [];
   var selectedIndexes = [];
   late Future<dynamic> _creditCardListFututre;
-   var secureStorage = SecureStorage();
+  var secureStorage = SecureStorage();
+  late var auth;
 
   @override
   initState() {
@@ -43,7 +45,7 @@ class _CreditCardList extends State<CreditCardList> {
     // super.initState();
   }
   Future<String?> checkToken() async{
-    return await secureStorage.getToken();
+    return await UserSecureStorage.getAuth() ?? '';
   }
   // This function is called whenever the text field changes
   void _runFilter(String enteredKeyword) {
@@ -119,7 +121,7 @@ class _CreditCardList extends State<CreditCardList> {
                           Column(
                             children: [
                               CheckboxListTile(
-                                value: _foundUsers[index]["isCheck"],
+                                value: _foundUsers[index]["isCheck"]??false,
                                 title: Text(_foundUsers[index]["name"].toString(),
                                     style: const TextStyle(color: Colors.white)),
                                 onChanged: (_){
@@ -152,13 +154,20 @@ class _CreditCardList extends State<CreditCardList> {
   }
 
   Future<dynamic> getCreditCardList() async {
+    String? token = "";
+    await checkToken().then((value) => {token= value});
     final response = await http.get(
-        Uri.parse("https://run.mocky.io/v3/bd9dd3a8-1b93-449d-bab4-fcbf6d85170f"));
+      Uri.parse('http://10.0.2.2:9020/getCardList'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'auth_token' : token.toString()
+      },
+    );
     print(response);
     if (response.statusCode == 200) {
       print(response.body.toString());
       setState(() {
-        final creditCardList = jsonDecode(response.body)['credit_card_list'].cast<Map<String, dynamic>>();
+        final creditCardList = jsonDecode(response.body)['data'].cast<Map<String, dynamic>>();
         _foundUsers = creditCardList;
         _allUsers = creditCardList;
         return json.decode(utf8.decode(response.bodyBytes));
@@ -176,10 +185,13 @@ class _CreditCardList extends State<CreditCardList> {
   void _checkToken() async{
     String? token = "";
     await checkToken().then((value) => {token= value, print(value)});
-    if( token != null && token!.isEmpty){
-      Future.delayed(Duration.zero, () async {
-        Navigator.pushNamed(context, '/signUp');
-      });
+    if(token == ""){
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const SignUp(),
+        ),
+      );
     }
   }
 }

@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:cred_xp/item_list.dart';
+import 'package:cred_xp/offers_search.dart';
 import 'package:cred_xp/secure_storage.dart';
+import 'package:cred_xp/storage/UserSecureStorage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:otp_text_field/otp_field.dart';
@@ -9,10 +11,14 @@ import 'package:otp_text_field/style.dart';
 import 'package:http/http.dart' as http;
 
 class VerifyOtp extends StatelessWidget {
-  VerifyOtp({super.key, required this.loginId});
+  VerifyOtp(
+      {super.key, required this.loginId, required this.isUserRegStatusCode});
 
   final String loginId;
+  final int isUserRegStatusCode;
+  late String otp;
   var secureStorage = SecureStorage();
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -33,13 +39,18 @@ class VerifyOtp extends StatelessWidget {
                   Container(
                     child: OTPTextField(
                       length: 4,
-                      width: MediaQuery.of(context).size.width,
+                      width: MediaQuery
+                          .of(context)
+                          .size
+                          .width,
                       fieldWidth: 50,
                       style: const TextStyle(fontSize: 17),
                       textFieldAlignment: MainAxisAlignment.spaceAround,
                       fieldStyle: FieldStyle.underline,
-                      onCompleted: (pin) {
-                        print("Completed : " + pin);
+                      onCompleted: (otp) {
+                        print("Completed : " + otp);
+                        this.otp = otp;
+                        verifyOtp(context, loginId, isUserRegStatusCode, otp);
                       },
                     ),
                     padding: const EdgeInsets.all(30),
@@ -58,36 +69,66 @@ class VerifyOtp extends StatelessWidget {
                   TextButton(
                     style: ButtonStyle(
                         backgroundColor: MaterialStateColor.resolveWith(
-                            (states) => Colors.blue)),
+                                (states) => Colors.blue)),
                     child: const Text(
                       "Next",
                       style: TextStyle(color: Colors.white),
                     ),
-                    onPressed: () => {verifyOtp(context)},
+                    onPressed: () =>
+                    {
+                      verifyOtp(context, loginId, isUserRegStatusCode, otp)
+                    },
                   )
                 ],
               ),
             )));
   }
 
-  verifyOtp(BuildContext context) async {
-    final response = await http.get(
-        Uri.parse("https://run.mocky.io/v3/cfbde6a0-715b-40b4-81b3-6d9fe428f08a"));
-
-    print(response);
+  verifyOtp(BuildContext context, String loginId,
+      int isUserRegStatusCode, String otp) async {
+    late String otpType;
+    if (isUserRegStatusCode == 4200) {
+      otpType = "LOGIN";
+    }
+    else if (isUserRegStatusCode == 4404) {
+      otpType = "SIGN_UP";
+    }
+    final response = await http.post(
+      Uri.parse('http://10.0.2.2:9020/verify/otp'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'loginId': loginId,
+        'countryCode': '91',
+        'otpType': otpType,
+        'otp': otp
+      }),
+    );
     if (response.statusCode == 200) {
       print(response.body.toString());
-      secureStorage.updateToken(jsonDecode(response.body)['auth']);
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => const CreditCardList()),
-      );
-    } else {
+      await UserSecureStorage.setAuth(
+          jsonDecode(response.body)['data']['token']);
+      if (otpType == "SIGN_UP") {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const CreditCardList()),
+        );
+      }
+      else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const OfferSearch()),
+        );
+      }
+    }
+      else {
       _showToast(context, 'Failed to verify OTP. Please try again!!');
     }
   }
-
+}
   void _showToast(BuildContext context, String message) {
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(SnackBar(
@@ -98,4 +139,3 @@ class VerifyOtp extends StatelessWidget {
       ),
     ));
   }
-}

@@ -1,6 +1,12 @@
+import 'dart:collection';
 import 'dart:convert';
 
-import 'package:cred_xp/podo/credit_card_offers_details.dart';
+import 'package:cred_xp/podo/CreditCardDetails.dart';
+import 'package:cred_xp/podo/OfferDetail.dart';
+import 'package:cred_xp/podo/OfferTableData.dart';
+import 'package:cred_xp/podo/UserCreditCardOfferDetails.dart';
+import 'package:cred_xp/sign_up_page.dart';
+import 'package:cred_xp/storage/UserSecureStorage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +29,7 @@ class _OfferSearch extends State<OfferSearch>{
 
   late Future<dynamic> _existingOfferFuture;
   List<dynamic> _existingOfferList = [];
+  Map<String, List<OfferDetails>> cashbackDetailsMap =  Map();
   String? selectedOffer;
   var cbDetailsJson;
   var offerCb;
@@ -52,7 +59,27 @@ class _OfferSearch extends State<OfferSearch>{
     return Scaffold(
             appBar: AppBar(
               title: const Text('CredXp'),
-            ),
+                automaticallyImplyLeading: false,
+              actions:[
+              TextButton(
+                style: ButtonStyle(
+                    backgroundColor: MaterialStateColor.resolveWith(
+                            (states) => Colors.blue)),
+                child: const Text(
+                  "Logout",
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: () async => {
+                  await secureStorage.deleteToken(),
+                  _showToast(context, 'Successfully Logged Out'),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const SignUp()),
+                  )
+                },
+              ),
+            ]),
             body: SizedBox(
                 width: double.infinity,
                 height: double.infinity,
@@ -129,6 +156,7 @@ class _OfferSearch extends State<OfferSearch>{
                             .toList(),
                         value: _selectedValue,
                         onChanged: (value){
+                          print(value);
                           setState(() {
                             _selectedValue = value as String?;
                           });
@@ -161,6 +189,7 @@ class _OfferSearch extends State<OfferSearch>{
                           ),
                         ),
                         searchMatchFn: (item, searchValue) {
+                          print(searchValue);
                           return (item.value.toString().contains(searchValue));
                         },
                         //This to clear the search value when you close the menu
@@ -265,12 +294,37 @@ class _OfferSearch extends State<OfferSearch>{
     throw UnimplementedError();
   }
   Future<dynamic> getExistingOffersList() async{
-    final response = await http.get(Uri.parse("https://run.mocky.io/v3/cfb3bc45-75cd-4f26-b0c1-784420ed7c6a"));
+    String? token = "";
+    await checkToken().then((value) => {token= value});
+    final response = await http.post(
+      Uri.parse('http://10.0.2.2:9020/user/offerDetails'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'auth_token' : token.toString()
+      },
+    );
     if(response.statusCode == 200){
       setState((){
-        print(jsonDecode(response.body)['existing_offer_list']);
-        final existingOfferList = jsonDecode(response.body)['existing_offer_list'];
+        print(jsonDecode(response.body)['data']);
+        final existingOfferList = jsonDecode(response.body)['data']['offerSet'];
         _existingOfferList= existingOfferList;
+        Map<String, List<dynamic>> map = Map.from(jsonDecode(response.body)['data']['cardOfferMap']);
+
+        map.forEach((k,v){
+          List<OfferDetails> offerDetailsList = List.empty(growable: true);
+          for(int i=0;i<v.length;i++) {
+            offerDetailsList.add(OfferDetails.fromJson(v[i]));
+          }
+          if(offerDetailsList.isNotEmpty) {
+            cashbackDetailsMap.putIfAbsent(k,() => offerDetailsList);
+          }
+        });
+        //UserCreditCardOfferDetails userCreditCardOfferDetails = UserCreditCardOfferDetails.fromJson(jsonDecode(response.body)['data']);
+        // cashbackDetailsMap = jsonDecode(response.body)['data']['cardOfferMap'];
+        ccOfferLink = jsonDecode(response.body)['data']['referralLink'];
+        offerCC = jsonDecode(response.body)['data']['referralCardName'];
+        offerCb = jsonDecode(response.body)['data']['cashBackPercentage'];
+        _url =  Uri.parse(ccOfferLink);
         return json.decode(response.body);
       });
     }
@@ -287,19 +341,41 @@ class _OfferSearch extends State<OfferSearch>{
   }
 
    getCashBack() async {
+    List<OfferDetails>? offerDetails = cashbackDetailsMap[_selectedValue];
+    List<dynamic> offerTableDataList = List.empty(growable: true);
+    if(offerDetails != null){
+    for(var i=0;i<offerDetails.length; i++) {
+      double totalCashback = (offerDetails[i].cashBack * int.parse(amountEditingController.text)/offerDetails[i].amount);
+      OfferTableData offerTableData = OfferTableData();
+      offerTableData.cardName = offerDetails[i].cardName;
+      offerTableData.cashBack = totalCashback;
+      offerTableDataList.add(offerTableData.toJson());
+      }
+
+    }
+    // for(var i=0;i<rewardsDetails.length;i++){
+    //   Map<String,dynamic> bankOffersDetails;
+    //   bankOffersDetails.update("name", (value) => rewardsDetails[i])
+    // }
+    // rewardsDetails.forEach((element) {
+    //
+    // });
     List<CreditCardOffersDetails> list;
-    final response = await http.get(Uri.parse("https://run.mocky.io/v3/6eee945d-a783-4660-b58f-b71bf0916494"));
-    print(response);
-    print(response);
-    if (response.statusCode == 200) {
-      print(response.body.toString());
+    // final response = await http.get(Uri.parse("http://10.0.2.2:9020/getCardList"));
+    // if (response.statusCode == 200) {
+    //   print(response.body.toString());
       setState((){
-        cbDetailsJson = jsonDecode(response.body)["data"]["credit_card_offers"];
-        offerCb = jsonDecode(response.body)["data"]["cc_refferal"]["cashback"];
-        offerCC = jsonDecode(response.body)["data"]["cc_refferal"]["name"];
-        ccOfferLink = jsonDecode(response.body)["data"]["cc_refferal"]["referral_link"];
+
+        cbDetailsJson = offerTableDataList;
         toggle = true;
-        _url =  Uri.parse(ccOfferLink);
+        offerCb = int.parse(amountEditingController.text) * offerCb / 100;
+        // cbDetailsJson = jsonDecode(response.body)["data"] as List;
+        // list = cbDetailsJson.map<CreditCardOffersDetails>((cbDetailsJson) => CreditCardOffersDetails.fromJson(cbDetailsJson)).toList();
+        // offerCb = jsonDecode(response.body)["data"]["cc_refferal"]["cashback"];
+        // offerCC = jsonDecode(response.body)["data"]["cc_refferal"]["name"];
+        // ccOfferLink = jsonDecode(response.body)["data"]["cc_refferal"]["referral_link"];
+        // toggle = true;
+        // _url =  Uri.parse(ccOfferLink);
       });
       // list = cbDetailsList.map<CreditCardOffersDetails>((json) => CreditCardOffersDetails.fromJson(json)).toList();
       // return list;
@@ -307,19 +383,19 @@ class _OfferSearch extends State<OfferSearch>{
       //   context,
       //   MaterialPageRoute(builder: (context) => VerifyOtp(loginId:amountEditingController.text)),
       // );
-    } else {
-      _showToast(context, 'Failed to send OTP. Please try again!!');
-    }
-    return null;
+    // } else {
+    //   _showToast(context, 'Failed to send OTP. Please try again!!');
+    // }
+    // return null;
   }
 
   Future<String?> checkToken() async{
-    return await secureStorage.getToken();
+    return await UserSecureStorage.getAuth() ?? '';
   }
   void _checkToken() async {
     var token;
     await checkToken().then((value) => {token = value, print(value)});
-    if (token != null && token!.isEmpty) {
+    if (token == null || token.isEmpty) {
       Future.delayed(Duration.zero, () async {
         Navigator.pushNamed(context, '/signUp');
       });

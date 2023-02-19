@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:cred_xp/offers_search.dart';
+import 'package:cred_xp/storage/UserSecureStorage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,8 +13,10 @@ void main() {
   .then((_) => {
   runApp(const BaseApp()
   )});
+
 }
 TextEditingController emailController = TextEditingController();
+
 class BaseApp extends StatelessWidget {
   const BaseApp({super.key});
 
@@ -19,12 +25,30 @@ class BaseApp extends StatelessWidget {
     // TODO: implement build
     return MaterialApp(
       home: SignUp(),
+      initialRoute: 'signUp',
+      routes: {
+        // When navigating to the "homeScreen" route, build the HomeScreen widget.
+        'signUp': (context) => const SignUp(),
+        // When navigating to the "secondScreen" route, build the SecondScreen widget.
+        'offerSearch': (context) => const OfferSearch(),
+      },
     );
   }
 }
 
-class SignUp extends StatelessWidget {
-  SignUp({super.key});
+class SignUp extends StatefulWidget {
+  const SignUp({Key? key}) : super(key: key);
+
+  @override
+  _SignUp createState() => _SignUp();
+}
+class _SignUp extends State<SignUp>{
+
+  @override
+  initState() {
+   _checkToken();
+    // super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,14 +103,25 @@ class SignUp extends StatelessWidget {
   }
 
   sendOtp(BuildContext context) async {
-    final response = await http.get(
-        Uri.parse("https://mocki.io/v1/262125f4-a49a-4dce-92c0-fbe3c03b3bca"));
-    print(response);
+    final response = await http.post(
+      Uri.parse('http://10.0.2.2:9020/isUserRegistered'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'loginId': emailController.text,
+        'countryCode': '91',
+        'loginType': 'MOBILE'
+      }),
+    );
+
     if (response.statusCode == 200) {
+      var jsonResponse = jsonDecode(response.body);
       print(response.body.toString());
+      _showToast(context, jsonResponse['message'] + emailController.text);
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => VerifyOtp(loginId:emailController.text)),
+        MaterialPageRoute(builder: (context) => VerifyOtp(loginId:emailController.text, isUserRegStatusCode: jsonResponse['statusCode'])),
       );
     } else {
       _showToast(context, 'Failed to send OTP. Please try again!!');
@@ -98,4 +133,23 @@ class SignUp extends StatelessWidget {
     action: SnackBarAction(label: 'DONE',onPressed: scaffold.hideCurrentSnackBar,),
     ));
   }
+  Future<String?> checkToken() async{
+    return await UserSecureStorage.getAuth() ?? '';
+  }
+  void _checkToken() async {
+    var token;
+    await checkToken().then((value) => {token = value, print(value)});
+    if (token != null || !token.isEmpty) {
+      Future.delayed(Duration.zero, () async {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const OfferSearch(),
+          ),
+        );
+      });
+    }
+  }
+
+
 }
