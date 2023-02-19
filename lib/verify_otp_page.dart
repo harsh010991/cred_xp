@@ -2,9 +2,8 @@ import 'dart:convert';
 
 import 'package:cred_xp/item_list.dart';
 import 'package:cred_xp/offers_search.dart';
-import 'package:cred_xp/secure_storage.dart';
-import 'package:cred_xp/storage/UserSecureStorage.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cred_xp/podo/StorageItem.dart';
+import 'package:cred_xp/storage/SecureStorage.dart';
 import 'package:flutter/material.dart';
 import 'package:otp_text_field/otp_field.dart';
 import 'package:otp_text_field/style.dart';
@@ -39,10 +38,7 @@ class VerifyOtp extends StatelessWidget {
                   Container(
                     child: OTPTextField(
                       length: 4,
-                      width: MediaQuery
-                          .of(context)
-                          .size
-                          .width,
+                      width: MediaQuery.of(context).size.width,
                       fieldWidth: 50,
                       style: const TextStyle(fontSize: 17),
                       textFieldAlignment: MainAxisAlignment.spaceAround,
@@ -54,43 +50,29 @@ class VerifyOtp extends StatelessWidget {
                       },
                     ),
                     padding: const EdgeInsets.all(30),
-                    // child: SizedBox(
-                    //   height: 40,
-                    //   width: 300,
-                    //   child: TextField(
-                    //       decoration:
-                    //       InputDecoration(border: OutlineInputBorder()),
-                    //       keyboardType: TextInputType.phone,
-                    //       inputFormatters: [
-                    //         FilteringTextInputFormatter.digitsOnly
-                    //       ]),
-                    // ),
                   ),
                   TextButton(
                     style: ButtonStyle(
                         backgroundColor: MaterialStateColor.resolveWith(
-                                (states) => Colors.blue)),
+                            (states) => Colors.blue)),
                     child: const Text(
                       "Next",
                       style: TextStyle(color: Colors.white),
                     ),
                     onPressed: () =>
-                    {
-                      verifyOtp(context, loginId, isUserRegStatusCode, otp)
-                    },
+                        {verifyOtp(context, loginId, isUserRegStatusCode, otp)},
                   )
                 ],
               ),
             )));
   }
 
-  verifyOtp(BuildContext context, String loginId,
-      int isUserRegStatusCode, String otp) async {
+  verifyOtp(BuildContext context, String loginId, int isUserRegStatusCode,
+      String otp) async {
     late String otpType;
     if (isUserRegStatusCode == 4200) {
       otpType = "LOGIN";
-    }
-    else if (isUserRegStatusCode == 4404) {
+    } else if (isUserRegStatusCode == 4404) {
       otpType = "SIGN_UP";
     }
     final response = await http.post(
@@ -107,35 +89,32 @@ class VerifyOtp extends StatelessWidget {
     );
     if (response.statusCode == 200) {
       print(response.body.toString());
-      await UserSecureStorage.setAuth(
-          jsonDecode(response.body)['data']['token']);
+      await SecureStorage.writeSecureData(
+          StorageItem('token', jsonDecode(response.body)['data']['token']));
       if (otpType == "SIGN_UP") {
         Navigator.push(
           context,
-          MaterialPageRoute(
-              builder: (context) => const CreditCardList()),
+          MaterialPageRoute(builder: (context) => const CreditCardList()),
         );
-      }
-      else {
+      } else {
         Navigator.push(
           context,
-          MaterialPageRoute(
-              builder: (context) => const OfferSearch()),
+          MaterialPageRoute(builder: (context) => const OfferSearch()),
         );
       }
-    }
-      else {
+    } else {
       _showToast(context, 'Failed to verify OTP. Please try again!!');
     }
   }
 }
-  void _showToast(BuildContext context, String message) {
-    final scaffold = ScaffoldMessenger.of(context);
-    scaffold.showSnackBar(SnackBar(
-      content: Text(message),
-      action: SnackBarAction(
-        label: 'DONE',
-        onPressed: scaffold.hideCurrentSnackBar,
-      ),
-    ));
-  }
+
+void _showToast(BuildContext context, String message) {
+  final scaffold = ScaffoldMessenger.of(context);
+  scaffold.showSnackBar(SnackBar(
+    content: Text(message),
+    action: SnackBarAction(
+      label: 'DONE',
+      onPressed: scaffold.hideCurrentSnackBar,
+    ),
+  ));
+}

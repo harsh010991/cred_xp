@@ -1,8 +1,7 @@
 import 'dart:convert';
 
 import 'package:cred_xp/offers_search.dart';
-import 'package:cred_xp/storage/UserSecureStorage.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cred_xp/storage/SecureStorage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -10,11 +9,9 @@ import 'verify_otp_page.dart';
 
 void main() {
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
-  .then((_) => {
-  runApp(const BaseApp()
-  )});
-
+      .then((_) => {runApp(const BaseApp())});
 }
+
 TextEditingController emailController = TextEditingController();
 
 class BaseApp extends StatelessWidget {
@@ -23,16 +20,7 @@ class BaseApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return MaterialApp(
-      home: SignUp(),
-      initialRoute: 'signUp',
-      routes: {
-        // When navigating to the "homeScreen" route, build the HomeScreen widget.
-        'signUp': (context) => const SignUp(),
-        // When navigating to the "secondScreen" route, build the SecondScreen widget.
-        'offerSearch': (context) => const OfferSearch(),
-      },
-    );
+    return const MaterialApp(home: SignUp());
   }
 }
 
@@ -42,20 +30,19 @@ class SignUp extends StatefulWidget {
   @override
   _SignUp createState() => _SignUp();
 }
-class _SignUp extends State<SignUp>{
 
+class _SignUp extends State<SignUp> {
   @override
   initState() {
-   _checkToken();
-    // super.initState();
+    _checkToken();
   }
 
   @override
   Widget build(BuildContext context) {
-    return
-      Scaffold(
+    return Scaffold(
         appBar: AppBar(
           title: const Text('CredXp'),
+            automaticallyImplyLeading: false
         ),
         body: SizedBox(
           width: double.infinity,
@@ -67,18 +54,20 @@ class _SignUp extends State<SignUp>{
                   alignment: Alignment.center,
                   width: 300,
                   child: const Text(
-                      "Please enter your mobile number. Don't worry, we also hate spam calls.",
-                    style: TextStyle(fontWeight: FontWeight.w400, fontStyle: FontStyle.italic),
-                  )
-              ),
+                    "Please enter your mobile number. Don't worry, we also hate spam calls.",
+                    style: TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontStyle: FontStyle.italic),
+                  )),
               Container(
                 padding: const EdgeInsets.all(15),
                 child: SizedBox(
                   height: 40,
                   width: 300,
                   child: TextField(
-                    controller: emailController,
-                      decoration: const InputDecoration(border: OutlineInputBorder()),
+                      controller: emailController,
+                      decoration:
+                          const InputDecoration(border: OutlineInputBorder()),
                       keyboardType: TextInputType.phone,
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly
@@ -87,15 +76,15 @@ class _SignUp extends State<SignUp>{
               ),
               Builder(
                 builder: (context) => TextButton(
-                style: ButtonStyle(
-                    backgroundColor: MaterialStateColor.resolveWith(
-                        (states) => Colors.blue)),
-                child: const Text(
-                  "Next",
-                  style: TextStyle(color: Colors.white),
+                  style: ButtonStyle(
+                      backgroundColor: MaterialStateColor.resolveWith(
+                          (states) => Colors.blue)),
+                  child: const Text(
+                    "Next",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onPressed: () => {sendOtp(context)},
                 ),
-                onPressed: () => {sendOtp(context)},
-              ),
               )
             ],
           ),
@@ -121,35 +110,38 @@ class _SignUp extends State<SignUp>{
       _showToast(context, jsonResponse['message'] + emailController.text);
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => VerifyOtp(loginId:emailController.text, isUserRegStatusCode: jsonResponse['statusCode'])),
+        MaterialPageRoute(
+            builder: (context) => VerifyOtp(
+                loginId: emailController.text,
+                isUserRegStatusCode: jsonResponse['statusCode'])),
       );
     } else {
       _showToast(context, 'Failed to send OTP. Please try again!!');
     }
   }
-  void _showToast(BuildContext context, String message){
+
+  void _showToast(BuildContext context, String message) {
     final scaffold = ScaffoldMessenger.of(context);
-    scaffold.showSnackBar(SnackBar(content: Text(message),
-    action: SnackBarAction(label: 'DONE',onPressed: scaffold.hideCurrentSnackBar,),
+    scaffold.showSnackBar(SnackBar(
+      content: Text(message),
+      action: SnackBarAction(
+        label: 'DONE',
+        onPressed: scaffold.hideCurrentSnackBar,
+      ),
     ));
   }
-  Future<String?> checkToken() async{
-    return await UserSecureStorage.getAuth() ?? '';
-  }
+
   void _checkToken() async {
-    var token;
-    await checkToken().then((value) => {token = value, print(value)});
-    if (token != null || !token.isEmpty) {
-      Future.delayed(Duration.zero, () async {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const OfferSearch(),
-          ),
-        );
-      });
-    }
+    await SecureStorage.containsKeyInSecureData('token').then((value) => {
+          if (value)
+            {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const OfferSearch(),
+                ),
+              )
+            }
+        });
   }
-
-
 }
