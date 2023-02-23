@@ -20,7 +20,8 @@ class _CreditCardList extends State<CreditCardList> {
   List<Map<String, dynamic>> _foundUsers = [];
   var selectedIndexes = [];
   late Future<dynamic> _creditCardListFututre;
-
+  late String token = "";
+  List<dynamic> selectedCardList = [];
   @override
   initState() {
     super.initState();
@@ -61,10 +62,13 @@ class _CreditCardList extends State<CreditCardList> {
             ),
             onPressed: () => {
               _showToast(context, 'Successfully Saved Details.'),
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const OfferSearch()),
-              )
+              updateUserCCList().then((value) => {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const OfferSearch()),
+                )
+              }),
+
             },
           ),
         ]),
@@ -113,6 +117,7 @@ class _CreditCardList extends State<CreditCardList> {
                                               _foundUsers[index]["isCheck"] =
                                                   !_foundUsers[index]
                                                       ["isCheck"];
+                                              selectedCardList.add({"cardId":_foundUsers[index]["id"]});
                                             });
                                           },
                                         )
@@ -137,9 +142,9 @@ class _CreditCardList extends State<CreditCardList> {
   }
 
   Future<dynamic> getCreditCardList() async {
-    String? token = "";
+
     await SecureStorage.readSecureData('token')
-        .then((value) => {token = value});
+        .then((value) => {token = value!});
     final response = await http.get(
       Uri.parse('http://10.0.2.2:9020/getCardList'),
       headers: <String, String>{
@@ -157,6 +162,25 @@ class _CreditCardList extends State<CreditCardList> {
         _allUsers = creditCardList;
         return json.decode(utf8.decode(response.bodyBytes));
       });
+    } else {
+      _showToast(context, 'Failed to send OTP. Please try again!!');
+    }
+  }
+
+  Future<dynamic> updateUserCCList() async {
+    final response = await http.post(
+      Uri.parse('http://10.0.2.2:9020/user/card'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'auth_token': token.toString()
+      },
+      body: jsonEncode(<String, List<dynamic>>{
+        "userCardList" : selectedCardList
+      }),
+    );
+    print(response);
+    if (response.statusCode == 200) {
+      _showToast(context, 'Successfully saved card details.');
     } else {
       _showToast(context, 'Failed to send OTP. Please try again!!');
     }

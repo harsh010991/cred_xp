@@ -92,14 +92,14 @@ class VerifyOtp extends StatelessWidget {
       await SecureStorage.writeSecureData(
           StorageItem('token', jsonDecode(response.body)['data']['token']));
       if (otpType == "SIGN_UP") {
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const CreditCardList()),
         );
       } else {
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const OfferSearch()),
+          MaterialPageRoute(builder: (context) => const CreditCardList()),
         );
       }
     } else {
