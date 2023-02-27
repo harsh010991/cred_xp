@@ -31,6 +31,7 @@ class _OfferSearch extends State<OfferSearch> {
   String? selectedOffer;
   var cbDetailsJson;
   var offerCb;
+  var referralOfferCb;
   var offerCC;
   var ccOfferLink;
   late Uri _url;
@@ -101,14 +102,18 @@ class _OfferSearch extends State<OfferSearch> {
                       child: SizedBox(
                         height: 40,
                         width: 150,
-                        child: TextField(
+                        child:
+                        TextField(
+                          autofocus: true,
                             controller: amountEditingController,
                             decoration: const InputDecoration(
                                 border: OutlineInputBorder()),
                             keyboardType: TextInputType.number,
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly
-                            ]),
+                            ],
+
+                        style: const TextStyle(color:Colors.black, fontWeight: FontWeight.w400)),
                       ),
                     ),
                   ],
@@ -327,7 +332,7 @@ class _OfferSearch extends State<OfferSearch> {
         });
         ccOfferLink = jsonDecode(response.body)['data']['referralLink'];
         offerCC = jsonDecode(response.body)['data']['referralCardName'];
-        offerCb = jsonDecode(response.body)['data']['cashBackPercentage'];
+        referralOfferCb = jsonDecode(response.body)['data']['cashBackPercentage'];
         _url = Uri.parse(ccOfferLink);
         return json.decode(response.body);
       });
@@ -365,7 +370,7 @@ class _OfferSearch extends State<OfferSearch> {
     setState(() {
       cbDetailsJson = offerTableDataList;
       toggle = true;
-      offerCb = int.parse(amountEditingController.text) * offerCb / 100;
+      offerCb = int.parse(amountEditingController.text) * referralOfferCb / 100;
     });
   }
 

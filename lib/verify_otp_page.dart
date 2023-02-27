@@ -99,7 +99,7 @@ class VerifyOtp extends StatelessWidget {
       } else {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const CreditCardList()),
+          MaterialPageRoute(builder: (context) => const OfferSearch()),
         );
       }
     } else {
