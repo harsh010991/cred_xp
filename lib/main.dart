@@ -1,24 +1,22 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'google/auth_service.dart';
 import 'sign_up_page.dart';
 
-void main() {
-  runApp(CredXpApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
 }
 
-class CredXpApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        FocusManager.instance.primaryFocus?.unfocus();
-      },
-      child: MaterialApp(
-        title: 'CredXp',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        home: SignUp(),
-      ),
+    return MaterialApp(
+      themeMode: ThemeMode.system,
+      debugShowCheckedModeBanner: false,
+      home: AuthService().handleAuthState(),
     );
   }
 }

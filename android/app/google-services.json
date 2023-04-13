@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "608544104618",
+    "project_id": "credxp-c6c0d",
+    "storage_bucket": "credxp-c6c0d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:608544104618:android:9ecd8187cfae297d87b0d3",
+        "android_client_info": {
+          "package_name": "com.credXP.cred_xp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "608544104618-o4n5rb86skr1u75heagv93qbvbe39vhs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyAZ3RgQVjzRbKELUoFch8_KJVu344JRU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "608544104618-o4n5rb86skr1u75heagv93qbvbe39vhs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

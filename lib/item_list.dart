@@ -6,8 +6,14 @@ import 'package:cred_xp/offers_search.dart';
 import 'package:cred_xp/storage/SecureStorage.dart';
 import 'package:cred_xp/sign_up_page.dart';
 
+import 'google/auth_service.dart';
+
 class CreditCardList extends StatefulWidget {
-  const CreditCardList({Key? key}) : super(key: key);
+  late String email;
+  late String accessToken;
+
+  CreditCardList({Key? key, required this.email, required this.accessToken})
+      : super(key: key);
 
   @override
   _CreditCardList createState() => _CreditCardList();
@@ -22,11 +28,14 @@ class _CreditCardList extends State<CreditCardList> {
   late Future<dynamic> _creditCardListFututre;
   late String token = "";
   List<dynamic> selectedCardList = [];
+
   @override
   initState() {
     super.initState();
-    _checkToken();
-    _creditCardListFututre = getCreditCardList();
+    // AuthService().appSocialLogin(widget.email, widget.accessToken).whenComplete(() => null);
+    // _checkToken();
+    _creditCardListFututre =
+        getCreditCardList(widget.email, widget.accessToken);
     // super.initState();
   }
 
@@ -62,13 +71,16 @@ class _CreditCardList extends State<CreditCardList> {
             ),
             onPressed: () => {
               _showToast(context, 'Successfully Saved Details.'),
-              updateUserCCList().then((value) => {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const OfferSearch()),
-                )
-              }),
-
+              updateUserCCList(this.widget.email).then((value) => {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => OfferSearch(
+                                email: widget.email,
+                                accessToken: widget.accessToken,
+                              )),
+                    )
+                  }),
             },
           ),
         ]),
@@ -117,7 +129,10 @@ class _CreditCardList extends State<CreditCardList> {
                                               _foundUsers[index]["isCheck"] =
                                                   !_foundUsers[index]
                                                       ["isCheck"];
-                                              selectedCardList.add({"cardId":_foundUsers[index]["id"]});
+                                              selectedCardList.add({
+                                                "cardId": _foundUsers[index]
+                                                    ["id"]
+                                              });
                                             });
                                           },
                                         )
@@ -141,44 +156,50 @@ class _CreditCardList extends State<CreditCardList> {
             }));
   }
 
-  Future<dynamic> getCreditCardList() async {
-
-    await SecureStorage.readSecureData('token')
-        .then((value) => {token = value!});
-    final response = await http.get(
-      Uri.parse('http://10.0.2.2:9020/getCardList'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'auth_token': token.toString()
-      },
-    );
-    print(response);
-    if (response.statusCode == 200) {
-      print(response.body.toString());
-      setState(() {
-        final creditCardList =
-            jsonDecode(response.body)['data'].cast<Map<String, dynamic>>();
-        _foundUsers = creditCardList;
-        _allUsers = creditCardList;
-        return json.decode(utf8.decode(response.bodyBytes));
-      });
-    } else {
-      _showToast(context, 'Failed to send OTP. Please try again!!');
+  Future<dynamic> getCreditCardList(String email, String accessToken) async {
+    try {
+      // await SecureStorage.readSecureData('token')
+      //     .then((value) => {token = value!});
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8080/getCardList'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8'
+        },
+        body: jsonEncode(<String, String>{
+          'auth_token': token.toString(),
+          'email': email,
+          'accessToken': accessToken
+        }),
+      );
+      print(response);
+      if (response.statusCode == 200) {
+        print(response.body.toString());
+        setState(() {
+          final creditCardList =
+              jsonDecode(response.body)['data'].cast<Map<String, dynamic>>();
+          _foundUsers = creditCardList;
+          _allUsers = creditCardList;
+          return json.decode(utf8.decode(response.bodyBytes));
+        });
+      } else {
+        _showToast(context, 'Failed to send OTP. Please try again!!');
+      }
+    } catch (e) {
+      print(e.toString());
+      print(e);
     }
   }
 
-  Future<dynamic> updateUserCCList() async {
+  Future<dynamic> updateUserCCList(String email) async {
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:9020/user/card'),
+      Uri.parse('http://10.0.2.2:8080/user/card'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'auth_token': token.toString()
       },
-      body: jsonEncode(<String, List<dynamic>>{
-        "userCardList" : selectedCardList
-      }),
+      body: jsonEncode(
+          <String, dynamic>{"email": email, "userCardList": selectedCardList}),
     );
-    print(response);
     if (response.statusCode == 200) {
       _showToast(context, 'Successfully saved card details.');
     } else {
@@ -197,16 +218,17 @@ class _CreditCardList extends State<CreditCardList> {
     ));
   }
 
-  void _checkToken() async {
+  _checkToken() async {
     await SecureStorage.containsKeyInSecureData('token').then((value) => {
           if (!value)
             {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SignUp(),
-                ),
-              )
+              AuthService().signOut(),
+              // Navigator.pushReplacement(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (context) => const SignUp(),
+              //   ),
+              // )
             }
         });
   }

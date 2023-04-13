@@ -76,7 +76,7 @@ class VerifyOtp extends StatelessWidget {
       otpType = "SIGN_UP";
     }
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:9020/verify/otp'),
+      Uri.parse('http://152.70.77.99:8080/verify/otp'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -94,12 +94,20 @@ class VerifyOtp extends StatelessWidget {
       if (otpType == "SIGN_UP") {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const CreditCardList()),
+          MaterialPageRoute(
+              builder: (context) => CreditCardList(
+                    email: "",
+                    accessToken: "",
+                  )),
         );
       } else {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const OfferSearch()),
+          MaterialPageRoute(
+              builder: (context) => OfferSearch(
+                    email: "",
+                    accessToken: "",
+                  )),
         );
       }
     } else {

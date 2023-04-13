@@ -1,6 +1,6 @@
 class OfferDetails{
   double amount;
-  int rewardPoint;
+  double rewardPoint;
   String cardName;
   String currency;
   double cashBack;
