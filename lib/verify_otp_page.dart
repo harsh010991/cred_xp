@@ -76,7 +76,7 @@ class VerifyOtp extends StatelessWidget {
       otpType = "SIGN_UP";
     }
     final response = await http.post(
-      Uri.parse('http://152.70.77.99:8080/verify/otp'),
+      Uri.parse('http://172.31.34.162:8080/verify/otp'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

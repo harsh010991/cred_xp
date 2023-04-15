@@ -140,7 +140,7 @@ class _SignUp extends State<SignUp> {
 
   sendOtp(BuildContext context) async {
     final response = await http.post(
-      Uri.parse('http://152.70.77.99:8080/isUserRegistered'),
+      Uri.parse('http://172.31.34.162:8080/isUserRegistered'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

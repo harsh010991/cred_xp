@@ -161,7 +161,7 @@ class _CreditCardList extends State<CreditCardList> {
       // await SecureStorage.readSecureData('token')
       //     .then((value) => {token = value!});
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8080/getCardList'),
+        Uri.parse('http://ec2-65-2-31-153.ap-south-1.compute.amazonaws.com/getCardList'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8'
         },
@@ -192,7 +192,7 @@ class _CreditCardList extends State<CreditCardList> {
 
   Future<dynamic> updateUserCCList(String email) async {
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:8080/user/card'),
+      Uri.parse('http://ec2-65-2-31-153.ap-south-1.compute.amazonaws.com/user/card'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'auth_token': token.toString()

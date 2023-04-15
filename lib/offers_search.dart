@@ -421,7 +421,7 @@ class _OfferSearch extends State<OfferSearch> {
     await SecureStorage.readSecureData('token')
         .then((value) => {token = value});
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:8080/user/offerDetails'),
+      Uri.parse('http://ec2-65-2-31-153.ap-south-1.compute.amazonaws.com/user/offerDetails'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8'
       },
@@ -524,7 +524,6 @@ class _OfferSearch extends State<OfferSearch> {
   }
 
   _checkToken() async {
-    print("I am inside OfferSearch for token check.................");
     await SecureStorage.containsKeyInSecureData('token').then((value) => {
           if (!value)
             {
