@@ -86,7 +86,7 @@ class _OfferSearch extends State<OfferSearch> {
     // TODO: implement build
     return Scaffold(
         appBar: AppBar(
-            title: const Text('CredXp'),
+            title: const Text('CredRp'),
             automaticallyImplyLeading: false,
             actions: [
               PopupMenuButton(

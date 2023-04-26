@@ -203,7 +203,7 @@ class _CreditCardList extends State<CreditCardList> {
     if (response.statusCode == 200) {
       _showToast(context, 'Successfully saved card details.');
     } else {
-      _showToast(context, 'Failed to send OTP. Please try again!!');
+      _showToast(context, 'Unable to save card details.!!');
     }
   }
 
