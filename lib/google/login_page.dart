@@ -49,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
                         minimumSize: const Size(double.infinity, 50),
                       ),
                       onPressed: () => {
-                        AuthService().signInWithGoogle(context)
+                        AuthService().signInWithGoogle()
                       },
                       icon: const FaIcon(
                         FontAwesomeIcons.google,

@@ -10,9 +10,10 @@ import 'package:cred_xp/podo/StorageItem.dart';
 import 'package:cred_xp/podo/UserCreditCardOfferDetails.dart';
 import 'package:cred_xp/sign_up_page.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'package:json_table/json_table.dart';
@@ -20,6 +21,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cred_xp/storage/SecureStorage.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 
+import 'google2/login_page2.dart';
+import 'help_query.dart';
 import 'item_list.dart';
 
 class OfferSearch extends StatefulWidget {
@@ -53,7 +56,7 @@ class _OfferSearch extends State<OfferSearch> {
     JsonTableColumn("name", label: "Name"),
     JsonTableColumn("cashback", label: "Cash")
   ];
-  var secureStorage = SecureStorage();
+  // var secureStorage = SecureStorage();
   String? _selectedValue;
   final TextEditingController textEditingController = TextEditingController();
   final TextEditingController amountEditingController = TextEditingController();
@@ -96,18 +99,17 @@ class _OfferSearch extends State<OfferSearch> {
                 },
                 onSelected: (value) {
                   if (value == 0) {
-                    SecureStorage.deleteSecureData(
-                            StorageItem('token', 'value'))
-                        .then((value) async => {
-                              _showToast(context, 'Successfully Logged Out'),
-                              await AuthService().signOut(),
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const LoginPage()),
-                              )
-                            });
-                  } else if (value == 1) {
+                    // SecureStorage.deleteSecureData(
+                    //         StorageItem('token', 'value'))
+                    //     .then((value) async => {
+                    //           _showToast(context, 'Successfully Logged Out'),
+                              AuthService().signOut();
+                              Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(
+                                      builder: (context) => AuthService().handleAuthState()),
+                                  (Route<dynamic> route) => false);
+                            }
+                  else if (value == 1) {
                     Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -323,6 +325,27 @@ class _OfferSearch extends State<OfferSearch> {
                       },
                     ),
                   )),
+              const SizedBox(
+                height: 80,
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HelpQuery(
+                          email: widget.email,
+                        ),
+                      ));
+                },
+                child: const Text(
+                  'Suggestions? Please connect here.',
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontStyle: FontStyle.italic,
+                      decoration: TextDecoration.underline),
+                ),
+              ),
               Container(
                   margin: const EdgeInsets.only(top: 20),
                   child: false
@@ -418,10 +441,11 @@ class _OfferSearch extends State<OfferSearch> {
   Future<dynamic> getExistingOffersList(
       String email, String accessToken) async {
     String? token = "";
-    await SecureStorage.readSecureData('token')
-        .then((value) => {token = value});
+    // await SecureStorage.readSecureData('token')
+    //     .then((value) => {token = value});
     final response = await http.post(
-      Uri.parse('http://ec2-65-2-31-153.ap-south-1.compute.amazonaws.com/user/offerDetails'),
+      Uri.parse(
+          'http://ec2-65-2-31-153.ap-south-1.compute.amazonaws.com/user/offerDetails'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8'
       },
@@ -433,7 +457,7 @@ class _OfferSearch extends State<OfferSearch> {
     );
     if (response.statusCode == 200) {
       setState(() {
-        print(jsonDecode(response.body)['data']);
+        // print(jsonDecode(response.body)['data']);
         final existingOfferList = jsonDecode(response.body)['data']['offerSet'];
         _existingOfferList = existingOfferList;
         Map<String, List<dynamic>> map =
@@ -499,12 +523,12 @@ class _OfferSearch extends State<OfferSearch> {
         offerTableDataList.add(offerTableData.toJson());
       }
 
-      for (int i = 0; i < cardNameSet.length; i++) {
-        OfferTableData offerTableData = OfferTableData();
-        offerTableData.cardName = cardNameSet.elementAt(i);
-        offerTableData.cashBack = 0;
-        offerTableDataList.add(offerTableData.toJson());
-      }
+      // for (int i = 0; i < cardNameSet.length; i++) {
+      //   OfferTableData offerTableData = OfferTableData();
+      //   offerTableData.cardName = cardNameSet.elementAt(i);
+      //   offerTableData.cashBack = 0;
+      //   offerTableDataList.add(offerTableData.toJson());
+      // }
     }
     offerTableDataList.sort((a, b) {
       return (a["cashback"]).compareTo(b["cashback"]);
@@ -578,21 +602,21 @@ class _OfferSearch extends State<OfferSearch> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Container(
-                                    width: 60,
+                                    width: 70,
                                     height: 20,
                                     // color: Colors.green[300],
-                                    padding: EdgeInsets.fromLTRB(3, 3, 3, 3),
+                                    padding: const EdgeInsets.fromLTRB(2.5, 2.5, 2.5, 2.5),
                                     decoration: BoxDecoration(
                                         border: Border.all(
                                             color: Colors.black12, width: 0.8),
-                                        borderRadius: BorderRadius.circular(15),
+                                        borderRadius: BorderRadius.circular(20),
                                         color: Colors.white54),
                                     child: Text(
                                         "Reward : " +
                                             cbDetailsJson[index]['totalReward']
                                                 .toString(),
                                         style: TextStyle(
-                                            fontSize: 10,
+                                            fontSize: 9,
                                             color: index !=
                                                     cbDetailsJson.length - 1
                                                 ? Colors.redAccent[800]
@@ -604,7 +628,7 @@ class _OfferSearch extends State<OfferSearch> {
                                   width: 60,
                                   height: 20,
                                   // color: Colors.green[300],
-                                  padding: EdgeInsets.fromLTRB(13, 3, 1, 3),
+                                  padding: EdgeInsets.fromLTRB(10, 4, 1, 3),
                                   decoration: BoxDecoration(
                                       border: Border.all(
                                           color: Colors.black12, width: 0.8),
@@ -615,7 +639,8 @@ class _OfferSearch extends State<OfferSearch> {
                                           cbDetailsJson[index]['cashback']
                                               .toString(),
                                       style: TextStyle(
-                                        fontSize: 10,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
                                         color: index != cbDetailsJson.length - 1
                                             ? Colors.redAccent[800]
                                             : Colors.yellow[800],

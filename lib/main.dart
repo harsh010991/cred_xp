@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'google/auth_service.dart';
+import 'help_query.dart';
 import 'sign_up_page.dart';
 
 void main() async {
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
-      home: AuthService().handleAuthState(),
+      home: AuthService().handleAuthState()
     );
   }
 }

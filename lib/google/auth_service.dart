@@ -20,9 +20,9 @@ class AuthService{
   String accessToken = "";
   //Determine if the user is authenticated.
   handleAuthState() {
-    return StreamBuilder<User?>(
+    return StreamBuilder(
         stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (BuildContext context,AsyncSnapshot snapshot) {
+        builder: (context,AsyncSnapshot snapshot) {
           if(snapshot.hasError){
             return Text(snapshot.error.toString());
           }
@@ -45,7 +45,7 @@ class AuthService{
         });
   }
 
-   signInWithGoogle(BuildContext context) async {
+   signInWithGoogle() async {
 
      final GoogleSignInAccount? gUser = await googleUser.signIn();
 
@@ -58,13 +58,16 @@ class AuthService{
        );
        accessToken = gAuth.accessToken!;
        // Once signed in, return the UserCredential
-       return await FirebaseAuth.instance
-           .signInWithCredential(credential);
+     try {
+       return await FirebaseAuth.instance.signInWithCredential(credential);
+     }catch(e){
+       print(e.toString());
+     }
    }
 
   //Sign out
   signOut() async{
-    await googleUser.signOut();
-    FirebaseAuth.instance.signOut();
+     await googleUser.disconnect();
+     await FirebaseAuth.instance.signOut();
   }
 }

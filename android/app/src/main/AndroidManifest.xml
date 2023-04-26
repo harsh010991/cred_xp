@@ -10,7 +10,7 @@
     </queries>
 
     <application
-        android:label="cred_xp"
+        android:label="credRp"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
